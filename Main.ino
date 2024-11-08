@@ -1,20 +1,15 @@
 
 /* 
 
+External Libraries: https://github.com/olliw42/fastmavlink
 Index:
-1. " ********* " means please check back on this
+1. " $$ " means please check back on this
 2. method details in README.txt
 ---------------------------------------------
 
- Name:           Ambition Avionics c++ file
+ Name:           Perserverance Avionics c++ file
  Summary:        Code is written to run on a Teensy 4.1 to preform the functions of an avionics subsytem 
- Contributors:   Bahran T, Miguel V, Andre H, Tarandeep S, Micheal B.		 
- Date:           05/14/2024
-
-
-
- Revisions on 05/14 : 
-   set up genera
+		 
 
 
 */ 
@@ -45,8 +40,6 @@ using namespace std;
 // *****! Define constants (Set up 2 more i^2C busses and one SPI) 
 
 /*
-* Constants for lora setup 
-#define LORA_BAND 433E6 
 #define SCK    system clock 
 #define MISO   Master in slave out 
 #define MOSI   Master out slave in
@@ -55,7 +48,6 @@ using namespace std;
        #define DIO    interrupt request #26
 
 
-what shoudl 
 
 */
 
@@ -75,49 +67,53 @@ what shoudl
 
 // Funciton prototypes 
 
-bool turnOn();        // "Turns on" flight computer
-bool apogeeReached(); // returns T/F based on wether the rocket has reached apogee or not 
-string identify();    // finds and identifies problems 
-bool Await();         // may be 
-void admin();         // menu for doing shit with the rocket: calibrate sensors,see battery life, check RSSI etc.. 
-void deployCharges(); // NEEDS WORK, LOGIC NOT YET DETERMINED 
-
-void inFlight();      // writes writes to sdCard and sends packets to groudstation
-
-void recordMessage(); // writes to sdCard and sends packets to groudstatoin
-
 
 
 
 // Global variables 
 
-vector<string[]> errorCodes;
 
 Adafruit_BMP3XX bmp;   // barometric pressure sensor
 Adafruit_ICM20948 icm; // Inertial measurment unit sensor 
 Adafruit_ADXL375 acc   // Accelerometer
 
 wire.begin();
-wire1.begin();
-wire2.begin();
 
 
 void setup() {
 
-//----- LoRa Setup: initalize ports, set transmission bandwidth in b/s 
 
 	Serial.begin(5000000); 
 
-	LoRa.setPins(SS, RST, DIO); 
 
-	LoRa.begin(LORA_BAND); 
-//------------------------------------------------
+  Serial.println("ICM20948 Test");
+  if (!icm.begin_I2C(0x69,&Wire1)) {
+
+    Serial.println("Failed to find ICM20948 chip");
+    delay(10);
+  }else{
+    Serial.println("ICM20948 Found!");
+  }
 
 
+ Serial.println("ADXL375 Accelerometer Test"); 
+  /* Initialize the sensor */
+  if(!accel375.begin(0x53))
+  {
+    /* There was a problem detecting the ADXL375 ... check your connections */
+    Serial.println("Ooops, no ADXL375 detected ... Check your wiring!");
+  }else{
+    Serial.println("ADXL375 Found!");
+  }
 
 
-
-
+  Serial.println("Adafruit BMP388 / BMP390 test");
+  //Test to see if communicating properly
+  if (!bmp.begin_I2C(0x77,&Wire)) { 
+  	Serial.println("Could not find a valid BMP3 sensor, check wiring!");
+	  } else{ 
+    Serial.println("BMP Found !");
+	  }
 
 
 
@@ -127,14 +123,7 @@ void setup() {
 
 void loop() {
 
-	if (turnOn()/*replace with await method... */ ) {
 
-		errorCodes.pushBack(Identify()); 
-
-
-
-
-	}
 
 
 }
@@ -146,11 +135,7 @@ void loop() {
 
 bool turnOn() {
 
-	// set up handshake mechanism with groundstation 
 
-	if (Await()) {    // if returns true, exec
-
-	}
 
 
 }
@@ -158,41 +143,11 @@ bool turnOn() {
 bool apogeeReached() {
 
 
-}
-string identify() {
 
-	string[] errors = {"low battery","low RSSI","General BMP error ","general accelerometer error", "general IMU error"}
-
-	if (/*check if x is wrong */) { error[0] = ""; }
-	if () { error[1] = ""; }
-	if () { error[2] = ""; }
-	if () { error[3] = ""; }
-	if () { error[4] = ""; }
-
-	return errors[]; 
 
 }
 
-bool await(){
 
-	//Method awaits on groundstation packet 
-
-	string target = "whatsThePassword?"; 
-
-	string message = "";
-
-	while (message!=target) {
-
-		message = LoRa.parsePacket();
-
-			if (message = target) {
-				return true; 
-			}
-	}
-
-	return false; 
-
-}
 
 void admin() {
 
