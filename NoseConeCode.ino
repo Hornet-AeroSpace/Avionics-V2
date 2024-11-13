@@ -31,10 +31,6 @@ void setup() {
 }
 
 void loop() {
-  // Check if signal is present
-  if (digitalRead(inputPin) == HIGH & digitalRead(inputPin2) == HIGH & digitalRead(inputPin3) == HIGH) {
-    
-  }
   /*
   if(digitalRead(inputPin) == LOW){
     // When the signal is lost, print the message
@@ -48,7 +44,8 @@ void loop() {
     // When the signal is lost, print the message
     Serial.println("Signal Lost Pin 3");
   }*/
-  if(digitalRead(inputPin) == LOW & digitalRead(inputPin2) == LOW || digitalRead(inputPin) == LOW & digitalRead(inputPin3) == LOW || digitalRead(inputPin2) == LOW & digitalRead(inputPin3) == LOW){
+  if(digitalRead(inputPin) == LOW & digitalRead(inputPin2) == LOW || digitalRead(inputPin) == LOW & digitalRead(inputPin3) == LOW || digitalRead(inputPin2) == LOW & digitalRead(inputPin3) == LOW)
+  {
     float temperature = bme280.readTemperature();          // Read temperature
     float pressure = bme280.readPressure();                // Read pressure
     float altitude = bme280.readAltitude(1013.25);
