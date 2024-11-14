@@ -4,9 +4,8 @@
 #include <Adafruit_BME280.h>     // Include Adafruit BME280 sensor library
 
 Servo myservo;  // create servo object to control a servo
-int closeServo = 125; // Adjust the fine movement
-int openServo = 20; // Adjust the fine movement
-int lock = 0; //locked = 0,
+int closeServo = 90; // Adjust the fine movement
+int openServo = 270; // Adjust the fine movement
 
 const int inputPin = 13; // Renamed variable to avoid conflict
 const int inputPin2 = 12;
@@ -19,6 +18,7 @@ Adafruit_BME280 bme280;           // Create an instance of the BME280 sensor
 
 void setup() {
   Serial.begin(9600);
+  myservo.attach(9);
   pinMode(inputPin, INPUT);
   pinMode(inputPin2, INPUT);
   pinMode(inputPin3, INPUT);
