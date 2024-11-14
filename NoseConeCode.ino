@@ -5,7 +5,7 @@
 
 Servo myservo;  // create servo object to control a servo
 int closeServo = 90; // Adjust the fine movement
-int openServo = 270; // Adjust the fine movement
+int openServo = -90; // Adjust the fine movement
 
 const int inputPin = 13; // Renamed variable to avoid conflict
 const int inputPin2 = 12;
@@ -51,7 +51,7 @@ void loop() {
     float altitude = bme280.readAltitude(1013.25);
 
     if(altitude == 1000){
-      digitalWrite(Pyro) = HIGH;
+      digitalWrite(Pyro, HIGH);
     }
     if(altitude == 400){
       myservo.write(closeServo);
