@@ -52,6 +52,8 @@ void loop() {
 
     if(altitude == 1000){
       digitalWrite(Pyro, HIGH);
+      delay(2000);
+      digitalWrite(Pyro, LOW);
     }
     if(altitude == 400){
       myservo.write(closeServo);
