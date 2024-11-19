@@ -66,6 +66,8 @@ void loop() {
 
     if (altitude == 1000) {
       digitalWrite(Pyro, HIGH); // Trigger pyro when altitude matches
+      delay(2000);
+      digitalWrite(Pyro, LOW);
     }
     if (altitude == 400) {
       myservo.write(unlock); // Move servo to close position when altitude matches
