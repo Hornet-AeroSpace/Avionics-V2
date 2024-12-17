@@ -3,7 +3,7 @@
 
 External Libraries: https://github.com/olliw42/fastmavlink
 Index:
-1. " $$ " means please check back on this
+1. " $$ " means please check back on this. INSTRUCTION: hit cntrl + f and enter "$$"
 2. method details in README.txt
 ---------------------------------------------
 
@@ -15,7 +15,8 @@ Index:
 */ 
 
 
-// Import necessary libraries 
+
+// $$ indentify unused libraries. remove em.
 
 #include <SPI.h>
 #include <LoRa.h>
@@ -23,19 +24,15 @@ Index:
 #include "Arduino.h"
 #include <Wire.h>
 #include <string>
-
-// **** Necessary dependencies to download
+#include <Adafruit_ADXL345_U.h>
+#include <MAVLink.h>
+#include <Wire.h>
+#include <Adafruit_BME390.h>
 #include "Sensors/Adafruit_ICM20948.h"
 #include "Sensors/Adafruit_ICM20X.h"
 #include <Sensors/Adafruit_Sensor.h>
 #include "Sensors/Adafruit_BMP3XX.h"
 #include "Sensors/Adafruit_ADXL375.h"
-#include <Wire.h>
-
-//******
-
-
-using namespace std;
 
 // *****! Define constants (Set up 2 more i^2C busses and one SPI) 
 
@@ -51,26 +48,13 @@ using namespace std;
 
 */
 
-#define ICM_SDA 17
-#define ICM_SCL 16
 
-#define BMP_SDA 18
-#define BMP_SCL 19
+// Global Variables 
 
-#define ACC_SDA 25
-#define ACC_SCL 24
+float a_magnitude, velocity = 0;  // Acceleration magnitude and velocity
+unsigned long prevTime = 0;       // For time tracking
 
-
-#define SS 10
-#define RST 32
-#define DIO 26
-
-// Funciton prototypes 
-
-
-
-
-// Global variables 
+const int LOCKOUTVELOCITY = 257;  // Units  = m/s "$$" derived by (.75 * 375 m/s) 375 m/s is the speed of sound in m/s
 
 
 Adafruit_BMP3XX bmp;   // barometric pressure sensor
@@ -115,8 +99,6 @@ void setup() {
     Serial.println("BMP Found !");
 	  }
 
-
-
 }
 
 
@@ -124,25 +106,69 @@ void setup() {
 void loop() {
 
 
+  sensors_event_t event;
+  accel.getEvent(&event);  // Get acceleration data
+
+  // Calculate acceleration magnitude (in m/s²)
+  float ax = event.acceleration.x;  // X acceleration
+  float ay = event.acceleration.y;  // Y acceleration
+  float az = event.acceleration.z;  // Z acceleration
+  
+if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){ 
+// preform functions if you are under .75 * (speed of sound)
+
+
+
+if (apogeeReached()){ 
+
+  deployCharges(); 
+}
+
+}
+// intentionally left out an else block. the following functions are supposed to occur regardless of current state.
+
+  // 1. Create a MAVLink message container
+  
+
+  
+
+
+
+
+
 
 
 }
 
 
+float returnVelocity(float ax, float ay, float az ){ 
+  a_magnitude = sqrt(ax * ax + ay * ay + az * az);  // Total magnitude
+  
+  // Remove gravity (assume stationary Z-axis)
+  float gravity = 9.8;
+  a_magnitude = abs(a_magnitude - gravity);   // $$ verify if it is correct to subract 9.8 from total velocity 
 
+  // Time calculation (in seconds)
+  unsigned long currentTime = millis();
+  float deltaT = (currentTime - prevTime) / 1000.0;  // Convert ms to seconds
+  prevTime = currentTime;
+
+  // Integrate to calculate velocity
+  velocity += a_magnitude * deltaT;
+
+  return velocity;
+  
+
+}
 
 //----------- Function Definitons ----------------------------
 
 bool turnOn() {
 
 
-
-
 }
 
 bool apogeeReached() {
-
-
 
 
 }
@@ -172,7 +198,7 @@ void deployCharges() {
 * 
 * Notes: 
 * 1. dont forget to write an index at the top i.g. Lines 23 find() is defined, etc..
-* 2. adjust coding rate when RSSI drops
+* 
 * 
 * 2. low battery, signal strength indicator, 
 */
