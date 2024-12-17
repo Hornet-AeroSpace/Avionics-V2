@@ -8,15 +8,15 @@ Index:
 ---------------------------------------------
 
  Name:           Perserverance Avionics c++ file
- Summary:        Code is written to run on a Teensy 4.1 to preform the functions of an avionics subsytem 
-		 
+ Summary:        Code is written to run on an ESP 32 based microcontroller to preform the functions of a traditional flight computer for a level 3 rocket
+
 
 
 */ 
 
 
 
-// $$ indentify unused libraries. remove em.
+// $$ indentify unused libraries & remove em.
 
 #include <SPI.h>
 #include <LoRa.h>
@@ -130,6 +130,8 @@ if (apogeeReached()){
   // 1. Create a MAVLink message container
   
 
+
+
   
 
 
@@ -140,6 +142,73 @@ if (apogeeReached()){
 
 }
 
+void trasmitMavlink(){  //$$ function definition incomplete
+  mavlink_msg_vfr_hud_pack(
+    0,                           
+    0,                         
+    &msg,
+    0,                    
+    speed,                 // [m/s] Groundspeed updtaes hud updates hyd
+    pitch,                     // [degrees] Heading (yaw angle) // updates hud
+    throttle,                   
+    0,             
+    climb_rate                        // [m/s] Climb rate updates hud
+  );
+ uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
+ // Serial.write(buf, len);
+
+
+
+int32_t relative_altitude = static_cast<int32_t>(2000 * 1000); // Relative altitude in millimeters //this updates height on hud
+
+
+mavlink_msg_global_position_int_pack(
+    0, //sys id not requied 
+    0, //componet id not required
+    &msg,
+    0,
+    0,
+    0,
+    0,
+    relative_altitude,
+    0,
+    0,
+    0,
+    heading
+);
+len = mavlink_msg_to_send_buffer(buf, &msg);
+
+//Serial.write(buf, len);
+uint16_t voltage_battery = 8000;  // Example: 11V (in millivolts) //updates voltage 
+int16_t current_battery = 200;     // Example: 1A (in centiamperes) //updates current 
+
+
+mavlink_msg_sys_status_pack(
+    0,
+    0,
+    &msg,
+    0,  
+    0,  
+    0,  
+    0,
+    voltage_battery, // updates hud
+    current_battery, // updates hud
+    0,  
+    0, 
+    0, 
+    0,
+    0, 
+    0, 
+    0,
+    0,
+    0,
+    0
+); 
+  
+
+len = mavlink_msg_to_send_buffer(buf, &msg);
+//Serial.write(buf, len);
+}
 
 float returnVelocity(float ax, float ay, float az ){ 
   a_magnitude = sqrt(ax * ax + ay * ay + az * az);  // Total magnitude
