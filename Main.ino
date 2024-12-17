@@ -16,7 +16,7 @@ Index:
 
 
 
-// $$ indentify unused libraries & remove em.
+// ** indentify unused libraries & remove em.
 
 #include <SPI.h>
 #include <LoRa.h>
@@ -115,7 +115,7 @@ void loop() {
   float az = event.acceleration.z;  // Z acceleration
   
 if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){ 
-// preform functions if you are under .75 * (speed of sound)
+//$$  preform functions if you are under .75 * (speed of sound)
 
 
 
@@ -232,13 +232,19 @@ float returnVelocity(float ax, float ay, float az ){
 
 //----------- Function Definitons ----------------------------
 
-bool turnOn() {
-
-
-}
 
 bool apogeeReached() {
+// logic: if altitude greater than current, with a margin that is GREATER than a defined constant;  return TRUE. 
 
+/*$$  Needed variable: `const int altPast1;` deltAltPast1 will be the delta of the altitude over a single second. 
+
+another variable will be needed to track delay. the delay(n); function cannot be used at all. 
+
+
+if (deltAltPast1 < 0){ 
+  return true; 
+}
+*/  
 
 }
 
@@ -246,11 +252,17 @@ bool apogeeReached() {
 
 void admin() {
 
+// will be a function that return batter life or any other needed data via bluetooth. Not a priority atm. 
 
 
 }
 
 void deployCharges() {
+
+  /* 
+  Set the predefined pin to HIGH
+
+  */ 
 
 
 }
