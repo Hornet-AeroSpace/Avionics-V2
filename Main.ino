@@ -18,16 +18,12 @@ Index:
 
 // ** indentify unused libraries & remove em.
 
-#include <SPI.h>
-#include <LoRa.h>
-#include <vector>
 #include "Arduino.h"
 #include <Wire.h>
 #include <string>
 #include <Adafruit_ADXL345_U.h>
 #include <MAVLink.h>
 #include <Wire.h>
-#include <Adafruit_BME390.h>
 #include "Sensors/Adafruit_ICM20948.h"
 #include "Sensors/Adafruit_ICM20X.h"
 #include <Sensors/Adafruit_Sensor.h>
@@ -43,8 +39,6 @@ Index:
        #define SS     clock #10
        #define RST    reset pin #32 
        #define DIO    interrupt request #26
-
-
 
 */
 
@@ -117,8 +111,6 @@ void loop() {
 if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){ 
 //$$  preform functions if you are under .75 * (speed of sound)
 
-
-
 if (apogeeReached()){ 
 
   deployCharges(); 
@@ -132,17 +124,11 @@ if (apogeeReached()){
 
 
 
-  
-
-
-
-
-
-
-
 }
 
 void trasmitMavlink(){  //$$ function definition incomplete
+
+/*
   mavlink_msg_vfr_hud_pack(
     0,                           
     0,                         
@@ -208,9 +194,19 @@ mavlink_msg_sys_status_pack(
 
 len = mavlink_msg_to_send_buffer(buf, &msg);
 //Serial.write(buf, len);
+
+*/ 
+
 }
 
 float returnVelocity(float ax, float ay, float az ){ 
+
+  // 1. initalize gravity values for 3 axis
+
+  float gx = 0, gy = 0, gz = 9.8; 
+
+
+
   a_magnitude = sqrt(ax * ax + ay * ay + az * az);  // Total magnitude
   
   // Remove gravity (assume stationary Z-axis)
@@ -246,9 +242,20 @@ if (deltAltPast1 < 0){
 }
 */  
 
+
+  unsigned long currentTime = millis();
+  float deltaT = (currentTime - prevTime) / 1000.0;  // Convert ms to seconds
+  prevTime = currentTime;
+
+
 }
 
 
+// theta  = ro
+float rotationMatrix(float theta, float phi, float psi){ 
+
+
+}
 
 void admin() {
 
@@ -257,13 +264,13 @@ void admin() {
 
 }
 
-void deployCharges() {
+void deployCharges(int pin) {
 
   /* 
   Set the predefined pin to HIGH
 
   */ 
-
+ SetPin(pin, HIGH); 
 
 }
 
