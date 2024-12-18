@@ -55,7 +55,7 @@ const int LOCKOUTVELOCITY = 257;  // Units  = m/s "$$" derived by (.75 * 375 m/s
 
 Adafruit_BMP3XX bmp;   // barometric pressure sensor
 Adafruit_ICM20948 icm; // Inertial measurment unit sensor 
-Adafruit_ADXL375 acc   // Accelerometer
+Adafruit_ADXL375 acc;   // Accelerometer
 
 wire.begin();
 
@@ -105,6 +105,9 @@ void loop() {
   sensors_event_t event;
   accel.getEvent(&event);  // Get acceleration data
   // Calculate acceleration magnitude (in m/s²)
+
+  // Grab acceleration values & calculate speed via kinematics in returnVelocity(). Velocity is calculated as a scalar within the function
+
   float ax = event.acceleration.x;  // X acceleration
   float ay = event.acceleration.y;  // Y acceleration
   float az = event.acceleration.z;  // Z acceleration
@@ -208,14 +211,15 @@ float returnVelocity(float ax, float ay, float az ){
   // 1. initalize gravity values for 3 axis
 
   float gx = 0, gy = 0, gz = 9.8; 
+  rotationMatrix(gx,gy,gz); //2. transform values to adjust the components of g
 
-
+   ax -= gx; 
+   ay -= gy; 
+   az -= gz; 
+   
 
   a_magnitude = sqrt(ax * ax + ay * ay + az * az);  // Total magnitude
   
-  // Remove gravity (assume stationary Z-axis)
-  float gravity = 9.8;
-  a_magnitude = abs(a_magnitude - gravity);   // $$ verify if it is correct to subract 9.8 from total velocity 
 
   // Time calculation (in seconds)
   unsigned long currentTime = millis();
@@ -263,9 +267,90 @@ if(deltT>= interval){
 }
 
 
-// theta  = ro
-float rotationMatrix(float theta, float phi, float psi){ 
+// track whatever components you want. 
+float rotationMatrix(float &x, float &y, float &z){ 
 
+
+  sensors_event_t gyro;
+  IMU.getEvent(&gyro);  
+
+
+
+  // return gyro values
+  float roll = gyro.gyro.z;  
+  float pitch = gyro.gyro.z;  
+  float yaw = gyro.gyro.z; 
+  
+
+  //$$ verify if gryo values from the sensor tracks  values in one of two ways 1. incremental rotation or 2. total rotation. 
+
+  // if 1( leave everything alone). if 2(in loop, sum the total changes of the gyro values)
+
+  // Initalize gyro values from the IMU here. 
+
+  float prevX = x, prevY = y, prevZ = z; 
+
+
+
+  float theta = toRadians(pitch); // Pitch
+  float phi = toRadians(roll);    // Roll
+  float psi = toRadians(yaw);     // Yaw
+
+
+  
+  // Rotation matrices      
+  float R_roll[3][3] = {
+    {1, 0, 0},
+    {0, cos(phi), -sin(phi)},
+    {0, sin(phi), cos(phi)}
+  };
+
+  float R_pitch[3][3] = {
+    {cos(theta), 0, sin(theta)},
+    {0, 1, 0},
+    {-sin(theta), 0, cos(theta)}
+  };
+
+  float R_yaw[3][3] = {
+    {cos(psi), -sin(psi), 0},
+    {sin(psi), cos(psi), 0},
+    {0, 0, 1}
+  };
+
+
+
+// computing R total,  A*B*C    <  
+
+  float R[3][3] = {0};
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      R[i][j] = 0;
+      for (int k = 0; k < 3; k++) {
+        R[i][j] += R_yaw[i][k] * R_pitch[k][j]; // =  A*B
+      }
+    }
+  }
+
+
+  // pt2  
+
+  float R_combined[3][3] = {0};
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      R_combined[i][j] = 0;
+      for (int k = 0; k < 3; k++) {
+        R_combined[i][j] += R[i][k] * R_roll[k][j]; //  = (A*B)* C
+      }
+    }
+  }
+
+
+  x = R_combined[0][0] * prevX + R_combined[0][1] * prevY + R_combined[0][2] * prevZ;
+  y = R_combined[1][0] * prevX + R_combined[1][1] * prevY + R_combined[1][2] * prevZ;
+  z = R_combined[2][0] * prevX + R_combined[2][1] * prevY + R_combined[2][2] * prevZ;
+
+// >
+// $$ Source: https://math.libretexts.org/Bookshelves/Applied_Mathematics/Mathematics_for_Game_Developers_(Burzynski)/04%3A_Matrices/4.06%3A_Rotation_Matrices_in_3-Dimensions
 
 }
 
@@ -286,6 +371,12 @@ void deployCharges(int pin) {
 
 }
 
+// HELPER FUNCTIONS 
+
+// Function to convert degrees to radians
+float toRadians(float degrees) {
+  return degrees * M_PI / 180.0;
+}
 
 //---------  MAINTANCE METHODS  --------------------
 
