@@ -47,6 +47,8 @@ Index:
 
 float a_magnitude, velocity = 0;  // Acceleration magnitude and velocity
 unsigned long prevTime = 0;       // For time tracking
+float prevAlt = 0.0;
+float deltAlt = 0.0;
 
 const int LOCKOUTVELOCITY = 257;  // Units  = m/s "$$" derived by (.75 * 375 m/s) 375 m/s is the speed of sound in m/s
 
@@ -102,11 +104,13 @@ void loop() {
 
   sensors_event_t event;
   accel.getEvent(&event);  // Get acceleration data
-
   // Calculate acceleration magnitude (in m/s²)
   float ax = event.acceleration.x;  // X acceleration
   float ay = event.acceleration.y;  // Y acceleration
   float az = event.acceleration.z;  // Z acceleration
+
+  //Calculating altitude using Pressure and Temperature
+  float altitude = bmp.readAltitude(1013.25);
   
 if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){ 
 //$$  preform functions if you are under .75 * (speed of sound)
@@ -241,13 +245,21 @@ if (deltAltPast1 < 0){
   return true; 
 }
 */  
-
-
+  prevAlt = altitude;
+  if(altitude - prevAlt < 0){
+  	return true;
+  }
+	
+  const unsigned long interval = 1000;  
   unsigned long currentTime = millis();
-  float deltaT = (currentTime - prevTime) / 1000.0;  // Convert ms to seconds
+  float deltaT = (currentTime - prevTime);  
+ 
+if(deltT>= interval){
   prevTime = currentTime;
+  deltAlt = 0; 
 
-
+  }else{ 
+  deltAlt += altitude - previousAlt; 
 }
 
 
