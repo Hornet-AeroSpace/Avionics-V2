@@ -135,7 +135,6 @@ if (apogeeReached()){
 
 void trasmitMavlink(){  //$$ function definition incomplete
 
-/*
   mavlink_msg_vfr_hud_pack(
     0,                           
     0,                         
@@ -202,7 +201,7 @@ mavlink_msg_sys_status_pack(
 len = mavlink_msg_to_send_buffer(buf, &msg);
 //Serial.write(buf, len);
 
-*/ 
+
 
 }
 
