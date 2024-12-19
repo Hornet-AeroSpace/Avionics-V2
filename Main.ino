@@ -272,7 +272,7 @@ if(deltaT>= interval){
 
 
 // track whatever components you want. 
-float rotationMatrix(float &x, float &y, float &z){ 
+void rotationMatrix(float &x, float &y, float &z){ 
 
 
   sensors_event_t gyro;
