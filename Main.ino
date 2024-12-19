@@ -19,17 +19,17 @@ Index:
 // ** indentify unused libraries & remove em.
 
 #include "Arduino.h"
-#include <Wire.h>
 #include <string>
-#include <Adafruit_ADXL345_U.h>
-#include <MAVLink.h>
+//#include <Adafruit_ADXL375_U.h>
+//#include <MAVLink.h>
 #include <Wire.h>
-#include "Sensors/Adafruit_ICM20948.h"
-#include "Sensors/Adafruit_ICM20X.h"
-#include <Sensors/Adafruit_Sensor.h>
-#include "Sensors/Adafruit_BMP3XX.h"
-#include "Sensors/Adafruit_ADXL375.h"
+#include "Adafruit_ICM20948.h"
+#include "Adafruit_ICM20X.h"
+#include <Adafruit_Sensor.h>
+#include "Adafruit_BMP3XX.h"
+#include "Adafruit_ADXL375.h"
 
+ float altitude;
 // *****! Define constants (Set up 2 more i^2C busses and one SPI) 
 
 /*
@@ -46,7 +46,7 @@ Index:
 // Global Variables 
 
 float a_magnitude, velocity = 0;  // Acceleration magnitude and velocity
-unsigned long prevTime = 0;       // For time tracking
+float prevTime = 0;       // For time tracking
 float prevAlt = 0.0;
 float deltAlt = 0.0;
 
@@ -55,15 +55,15 @@ const int LOCKOUTVELOCITY = 257;  // Units  = m/s "$$" derived by (.75 * 375 m/s
 
 Adafruit_BMP3XX bmp;   // barometric pressure sensor
 Adafruit_ICM20948 icm; // Inertial measurment unit sensor 
-Adafruit_ADXL375 acc;   // Accelerometer
-
-wire.begin();
+Adafruit_ADXL375 accel(-1, &Wire);    // Accelerometer
+ 
 
 
 void setup() {
 
+Wire.begin();
 
-	Serial.begin(5000000); 
+	Serial.begin(9600);
 
 
   Serial.println("ICM20948 Test");
@@ -78,7 +78,8 @@ void setup() {
 
  Serial.println("ADXL375 Accelerometer Test"); 
   /* Initialize the sensor */
-  if(!accel375.begin(0x53))
+  accel = Adafruit_ADXL375(0x53,&Wire);
+  if(!accel.begin(0x53))
   {
     /* There was a problem detecting the ADXL375 ... check your connections */
     Serial.println("Ooops, no ADXL375 detected ... Check your wiring!");
@@ -113,14 +114,14 @@ void loop() {
   float az = event.acceleration.z;  // Z acceleration
 
   //Calculating altitude using Pressure and Temperature
-  float altitude = bmp.readAltitude(1013.25);
+ altitude = bmp.readAltitude(1013.25);
   
 if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){ 
 //$$  preform functions if you are under .75 * (speed of sound)
 
 if (apogeeReached()){ 
 
-  deployCharges(); 
+  deployCharges(37); 
 }
 
 }
@@ -134,6 +135,8 @@ if (apogeeReached()){
 }
 
 void trasmitMavlink(){  //$$ function definition incomplete
+
+/*
 
   mavlink_msg_vfr_hud_pack(
     0,                           
@@ -201,7 +204,7 @@ mavlink_msg_sys_status_pack(
 len = mavlink_msg_to_send_buffer(buf, &msg);
 //Serial.write(buf, len);
 
-
+*/
 
 }
 
@@ -257,12 +260,14 @@ if (deltAltPast1 < 0){
   unsigned long currentTime = millis();
   float deltaT = (currentTime - prevTime);  
  
-if(deltT>= interval){
+if(deltaT>= interval){
   prevTime = currentTime;
   deltAlt = 0; 
 
   }else{ 
-  deltAlt += altitude - previousAlt; 
+  deltAlt += altitude - prevAlt; 
+}
+
 }
 
 
@@ -271,7 +276,7 @@ float rotationMatrix(float &x, float &y, float &z){
 
 
   sensors_event_t gyro;
-  IMU.getEvent(&gyro);  
+  icm.getEvent(NULL,&gyro,NULL,NULL);  
 
 
 
@@ -366,7 +371,7 @@ void deployCharges(int pin) {
   Set the predefined pin to HIGH
 
   */ 
- SetPin(pin, HIGH); 
+ digitalWrite(pin, HIGH); 
 
 }
 
