@@ -63,7 +63,7 @@ wire.begin();
 void setup() {
 
 
-	Serial.begin(5000000); 
+	Serial.begin(9600); 
 
 
   Serial.println("ICM20948 Test");
@@ -134,16 +134,17 @@ if (apogeeReached()){
 }
 
 void trasmitMavlink(){  //$$ function definition incomplete
+  mavlink_message_t msg;
+  uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 
-/*
   mavlink_msg_vfr_hud_pack(
     0,                           
     0,                         
     &msg,
     0,                    
     speed,                 // [m/s] Groundspeed updtaes hud updates hyd
-    pitch,                     // [degrees] Heading (yaw angle) // updates hud
-    throttle,                   
+    0,                     // [degrees] Heading (yaw angle) // updates hud
+    0,                   
     0,             
     climb_rate                        // [m/s] Climb rate updates hud
   );
@@ -202,8 +203,6 @@ mavlink_msg_sys_status_pack(
 len = mavlink_msg_to_send_buffer(buf, &msg);
 //Serial.write(buf, len);
 
-*/ 
-
 }
 
 float returnVelocity(float ax, float ay, float az ){ 
@@ -240,15 +239,11 @@ float returnVelocity(float ax, float ay, float az ){
 bool apogeeReached() {
 // logic: if altitude greater than current, with a margin that is GREATER than a defined constant;  return TRUE. 
 
-/*$$  Needed variable: `const int altPast1;` deltAltPast1 will be the delta of the altitude over a single second. 
-
-another variable will be needed to track delay. the delay(n); function cannot be used at all. 
-
 
 if (deltAltPast1 < 0){ 
   return true; 
 }
-*/  
+ 
   prevAlt = altitude;
   if(altitude - prevAlt < 0){
   	return true;
@@ -264,6 +259,7 @@ if(deltT>= interval){
 
   }else{ 
   deltAlt += altitude - previousAlt; 
+}
 }
 
 
