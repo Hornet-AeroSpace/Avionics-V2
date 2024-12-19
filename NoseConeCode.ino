@@ -82,7 +82,7 @@ void loop() {
       delay(2000);
       digitalWrite(Pyro, LOW);
     }
-    if (altitude >= 395 && altitude <= 405) {
+    if (altitude >= 390 && altitude <= 400) {
       myservo.write(unlock);
     }
   }
