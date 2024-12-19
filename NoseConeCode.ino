@@ -16,6 +16,8 @@ const int Screw = 26;
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
 Adafruit_BMP3XX bmp;
 
+float seaLevelPressure = 1013.25; // Default sea-level pressure, updated at runtime
+
 void setup() {
   Serial.begin(115200);
 
@@ -39,6 +41,15 @@ void setup() {
   bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+
+  // Set sea-level pressure to the current pressure at startup
+  if (bmp.performReading()) {
+    seaLevelPressure = bmp.pressure / 100.0; // Convert Pa to hPa
+    Serial.print("Sea-Level Pressure Initialized to: ");
+    Serial.println(seaLevelPressure);
+  } else {
+    Serial.println("Failed to read pressure during initialization!");
+  }
 }
 
 void loop() {
@@ -59,7 +70,7 @@ void loop() {
 
     float temperature = bmp.temperature;
     float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
-    float altitude = bmp.readAltitude(1013.25); // Adjust sea-level pressure as needed
+    float altitude = bmp.readAltitude(seaLevelPressure); // Use updated sea-level pressure
 
     Serial.print("Temperature: "); Serial.println(temperature);
     Serial.print("Pressure: "); Serial.println(pressure);
