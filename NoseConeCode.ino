@@ -1,76 +1,78 @@
-#include <ESP32Servo.h>          // Include the ESP32Servo library for controlling the servo
-#include <Wire.h>                // Include Wire library for I2C communication
-#include <Adafruit_Sensor.h>     // Include Adafruit Sensor library
-#include <Adafruit_BME280.h>     // Include Adafruit BME280 sensor library
-#include <BluetoothSerial.h>     // Include BluetoothSerial library for ESP32
+#include <ESP32Servo.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP3XX.h>
 
-Servo myservo;  // create servo object to control a servo
-int lock = 90; // Adjust the fine movement
-int unlock = -90; // Adjust the fine movement
+Servo myservo;
+int lock = 90;    // Lock position
+int unlock = 0;   // Unlock position
 
-const int inputPin = 13; // Pin for input signal 1
-const int inputPin2 = 12; // Pin for input signal 2
-const int inputPin3 = 14; // Pin for input signal 3 (Changed to a different pin for ESP32)
-const int Pyro = 15; // Pin for Pyro (Changed to a different pin for ESP32)
+const int inputPin = 13;
+const int inputPin2 = 12;
+const int inputPin3 = 14;
+const int Pyro = 15;
+const int Screw = 26;
 
-#define BME280_I2C_ADDRESS  0x76  // Set the I2C address of your BME280 sensor
-
-Adafruit_BME280 bme280;           // Create an instance of the BME280 sensor
-
-BluetoothSerial ESP_BT;  // Create BluetoothSerial object
+#define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
+Adafruit_BMP3XX bmp;
 
 void setup() {
-  Serial.begin(9600); // ESP32 typically uses a higher baud rate
-  ESP_BT.begin("ESP32_Servo_Control"); // Name of the Bluetooth device
-  Serial.println("Bluetooth device is ready to pair");
-  
-  myservo.attach(5);    // Adjust the pin for the servo (Pin 5 is commonly PWM compatible on ESP32)
+  Serial.begin(115200);
+
+  myservo.attach(5);
   
   pinMode(inputPin, INPUT);
   pinMode(inputPin2, INPUT);
   pinMode(inputPin3, INPUT);
   pinMode(Pyro, OUTPUT);
-  
-  if (!bme280.begin(BME280_I2C_ADDRESS)) {  // Initialize the sensor
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1);  // Infinite loop if sensor is not found
+  pinMode(Screw, INPUT);
+  digitalWrite(Pyro, LOW);
+
+  // Initialize BMP390 sensor
+  if (!bmp.begin_I2C(BMP390_I2C_ADDRESS)) {
+    Serial.println("Could not find a valid BMP390 sensor, check wiring!");
+    while (1);
   }
-  Serial.println("Looking for signal");
+
+  // Set sensor parameters
+  bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+  bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
+  bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+  bmp.setOutputDataRate(BMP3_ODR_50_HZ);
 }
 
 void loop() {
-  // Bluetooth data reception
-  if (ESP_BT.available()) {
-    char receivedChar = ESP_BT.read();  // Read the received character
-
-    if (receivedChar == '1') {
-      myservo.write(unlock); // Close the servo when '1' is received
-      Serial.println("Servo closed");
-    } else if (receivedChar == '2') {
-      myservo.write(lock);  // Open the servo when '2' is received
-      Serial.println("Servo opened");
-    }
+  
+  if (digitalRead(Screw) == LOW) {
+    myservo.write(lock);
   }
 
-  if (digitalRead(inputPin) == LOW && digitalRead(inputPin2) == LOW || 
-      digitalRead(inputPin) == LOW && digitalRead(inputPin3) == LOW || 
-      digitalRead(inputPin2) == LOW && digitalRead(inputPin3) == LOW) {
+  if ((digitalRead(inputPin) == LOW && digitalRead(inputPin2) == LOW) || 
+      (digitalRead(inputPin) == LOW && digitalRead(inputPin3) == LOW) || 
+      (digitalRead(inputPin2) == LOW && digitalRead(inputPin3) == LOW)) {
+      
+    // Perform sensor reading
+    if (!bmp.performReading()) {
+      Serial.println("Failed to perform reading from BMP390 sensor!");
+      return;
+    }
 
-    float temperature = bme280.readTemperature();          // Read temperature
-    float pressure = bme280.readPressure();                // Read pressure
-    float altitude = bme280.readAltitude(1013.25);         // Read altitude with standard pressure
+    float temperature = bmp.temperature;
+    float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
+    float altitude = bmp.readAltitude(1013.25); // Adjust sea-level pressure as needed
 
     Serial.print("Temperature: "); Serial.println(temperature);
     Serial.print("Pressure: "); Serial.println(pressure);
     Serial.print("Altitude: "); Serial.println(altitude);
 
-    if (altitude == 1000) {
-      digitalWrite(Pyro, HIGH); // Trigger pyro when altitude matches
+    // Altitude-based actions
+    if (altitude >= 995 && altitude <= 1005) {
+      digitalWrite(Pyro, HIGH);
       delay(2000);
       digitalWrite(Pyro, LOW);
     }
-    if (altitude == 400) {
-      myservo.write(unlock); // Move servo to close position when altitude matches
+    if (altitude >= 395 && altitude <= 405) {
+      myservo.write(unlock);
     }
   }
 }
