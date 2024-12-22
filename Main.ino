@@ -16,48 +16,39 @@ Index:
 
 
 
-// ** indentify unused libraries & remove em.
+// $$ Identify & remove any unused librares. 
 
 #include "Arduino.h"
 #include <string>
-//#include <Adafruit_ADXL375_U.h>
-//#include <MAVLink.h>
+#include <MAVLink.h>
 #include <Wire.h>
 #include "Adafruit_ICM20948.h"
 #include "Adafruit_ICM20X.h"
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BMP3XX.h"
 #include "Adafruit_ADXL375.h"
-
- float altitude;
-// *****! Define constants (Set up 2 more i^2C busses and one SPI) 
-
-/*
-#define SCK    system clock 
-#define MISO   Master in slave out 
-#define MOSI   Master out slave in
-       #define SS     clock #10
-       #define RST    reset pin #32 
-       #define DIO    interrupt request #26
-
-*/
+#include "Adafruit_INA260.h"
 
 
-// Global Variables 
-
-float a_magnitude, velocity = 0;  // Acceleration magnitude and velocity
-float prevTime = 0;       // For time tracking
-float prevAlt = 0.0;
-float deltAlt = 0.0;
-
-const int LOCKOUTVELOCITY = 257;  // Units  = m/s "$$" derived by (.75 * 375 m/s) 375 m/s is the speed of sound in m/s
 
 
-Adafruit_BMP3XX bmp;   // barometric pressure sensor
-Adafruit_ICM20948 icm; // Inertial measurment unit sensor 
-Adafruit_ADXL375 accel(-1, &Wire);    // Accelerometer
+
+//---- Global Variables <
  
+float altitude, a_magnitude, velocity = 0;  // Acceleration magnitude and velocity      
+float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0, power;
 
+const int LOCKOUTVELOCITY = 257;  // Units: m/s,  "$$" derived by (.75 * 375 m/s) 375 m/s is the speed of sound at sea level
+
+
+Adafruit_BMP3XX bmp;                    // barometric pressure sensor
+Adafruit_ICM20948 icm;                  // Inertial measurment unit sensor 
+Adafruit_ADXL375 accel(0x53, &Wire);    // Accelerometer
+/*
+$$ uncomment & remove once the hex address for the INA is found 
+Adafruit_INA260 ina260 = Adafruit_INA260(IICaddr, &Wire); // voltage & current sensor 
+*/ 
+//>
 
 void setup() {
 
@@ -88,7 +79,7 @@ Wire.begin();
   }
 
 
-  Serial.println("Adafruit BMP388 / BMP390 test");
+  Serial.println("Adafruit BMP390 test");
   //Test to see if communicating properly
   if (!bmp.begin_I2C(0x77,&Wire)) { 
   	Serial.println("Could not find a valid BMP3 sensor, check wiring!");
@@ -96,12 +87,19 @@ Wire.begin();
     Serial.println("BMP Found !");
 	  }
 
+ //  ina260.begin(); 
 }
 
 
 
 void loop() {
 
+  unsigned long elapsedTime = millis();
+  if(elapsedTime % 250 == 0 ){ // conditional that excecutes every 250 miliseconds, p
+// power = ina260.readPower(); 
+// Volt = readBusVoltage(); 
+
+  }
 
   sensors_event_t event;
   accel.getEvent(&event);  // Get acceleration data
