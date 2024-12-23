@@ -216,8 +216,9 @@ float returnVelocity(float ax, float ay, float az ){
    ax -= gx; 
    ay -= gy; 
    az -= gz; 
-   
-
+   Serial.print("GX: "); Serial.println(gx);
+   Serial.print("GY: "); Serial.println(gy);
+   Serial.print("GZ: "); Serial.println(gz);
   a_magnitude = sqrt(ax * ax + ay * ay + az * az);  // Total magnitude
   
 
