@@ -12,11 +12,10 @@ const int inputPin2 = 12;
 const int inputPin3 = 14;
 const int Pyro = 15;
 const int Screw = 26;
+int num = -5;
 
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
 Adafruit_BMP3XX bmp;
-
-float seaLevelPressure = 1013.25; // Default sea-level pressure, updated at runtime
 
 void setup() {
   Serial.begin(115200);
@@ -41,19 +40,15 @@ void setup() {
   bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
   bmp.setOutputDataRate(BMP3_ODR_50_HZ);
-
-  // Set sea-level pressure to the current pressure at startup
-  if (bmp.performReading()) {
-    seaLevelPressure = bmp.pressure / 100.0; // Convert Pa to hPa
-    Serial.print("Sea-Level Pressure Initialized to: ");
-    Serial.println(seaLevelPressure);
-  } else {
-    Serial.println("Failed to read pressure during initialization!");
-  }
 }
 
 void loop() {
-  
+  float startingPressure;
+  if (num<= 5){
+    startingPressure = bmp.pressure / 100.0;
+    Serial.print("Starting Pressure" + num);Serial.println(startingPressure);
+    num = num + 1;
+  }
   if (digitalRead(Screw) == LOW) {
     myservo.write(lock);
   }
@@ -70,19 +65,22 @@ void loop() {
 
     float temperature = bmp.temperature;
     float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
-    float altitude = bmp.readAltitude(seaLevelPressure); // Use updated sea-level pressure
+
+    // Calculate altitude manually using barometric formula
+    float altitude = bmp.readAltitude(startingPressure);
 
     Serial.print("Temperature: "); Serial.println(temperature);
     Serial.print("Pressure: "); Serial.println(pressure);
     Serial.print("Altitude: "); Serial.println(altitude);
+    Serial.print("Starting Pressure: "); Serial.println(startingPressure);
 
     // Altitude-based actions
-    if (altitude >= 995 && altitude <= 1005) {
+    if (altitude >= 1000 && altitude <= 995) { // Adjust range as needed for small altitude variations
       digitalWrite(Pyro, HIGH);
       delay(2000);
       digitalWrite(Pyro, LOW);
     }
-    if (altitude >= 390 && altitude <= 400) {
+    if (altitude >= 389 && altitude <= 399) {
       myservo.write(unlock);
     }
   }
