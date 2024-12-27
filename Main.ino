@@ -39,6 +39,7 @@ float altitude, a_magnitude, velocity = 0;  // Acceleration magnitude and veloci
 float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0, power;
 
 const int LOCKOUTVELOCITY = 257;  // Units: m/s,  "$$" derived by (.75 * 375 m/s) 375 m/s is the speed of sound at sea level
+const int CHARGESPIN = 37; // $$ Pin to set off charges, confirm this is correct pin after swithcing to protenta
 
 
 Adafruit_BMP3XX bmp;                    // barometric pressure sensor
@@ -119,7 +120,7 @@ if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){
 
 if (apogeeReached()){ 
 
-  deployCharges(37); 
+  deployCharges(CHARGESPIN); 
 }
 
 }
