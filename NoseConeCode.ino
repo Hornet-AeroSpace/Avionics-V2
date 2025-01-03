@@ -2,6 +2,10 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP3XX.h>
+#include <SPI.h> 
+#include <SD.h> 
+
+#define CS_PIN 5 
 
 Servo myservo;
 int lock = 90;    // Lock position
@@ -28,6 +32,26 @@ void setup() {
   pinMode(Pyro, OUTPUT);
   pinMode(Screw, INPUT);
   digitalWrite(Pyro, LOW);
+
+
+  // initalize SDCard Writer 
+
+  if(!SD.begin(CS_PIN)){ 
+    Serial.println(" Card writer failed, or not present"); 
+  }else{ 
+    unsigned long startTime = millis(); 
+    Serial.println(" Card writer initalized "); 
+  }
+// end 
+
+// Open File for writing
+
+  File dataFile = SD.open( "data.csv", FILE_WRITE); 
+
+  if(dataFile){ 
+    dataFile.println("Time, Air Pressure, Derived Altitude,  Temprature "); 
+  }
+  // end 
 
   // Initialize BMP390 sensor
   if (!bmp.begin_I2C(BMP390_I2C_ADDRESS)) {
@@ -83,5 +107,13 @@ void loop() {
     if (altitude >= 389 && altitude <= 399) {
       myservo.write(unlock);
     }
+
+   // recording data 
+     dataFile.print((millis()-startTime));  dataFile.print( ",");
+     dataFile.print(pressure);  dataFile.print( ",");
+     dataFile.print(altitude);  dataFile.print( ",");
+    dataFile.println(startingPressure); 
+
+
   }
 }
