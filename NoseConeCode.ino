@@ -103,17 +103,12 @@ void loop() {
       digitalWrite(Pyro, HIGH);
       delay(2000);
       digitalWrite(Pyro, LOW);
+      dataFile.print("Nose-Cone Parachute Deploy at "); dataFile.println(altitude);
     }
     if (altitude >= 389 && altitude <= 399) {
       myservo.write(unlock);
+      dataFile.print("Drone Launch at "); dataFile.write(altitude);
     }
-
-   // recording data 
-     dataFile.print((millis()-startTime));  dataFile.print( ",");
-     dataFile.print(pressure);  dataFile.print( ",");
-     dataFile.print(altitude);  dataFile.print( ",");
-    dataFile.println(startingPressure); 
-
 
   }
 }
