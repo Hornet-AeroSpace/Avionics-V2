@@ -102,11 +102,11 @@ void loop() {
       digitalWrite(Pyro, HIGH);
       delay(2000);
       digitalWrite(Pyro, LOW);
-      dataFile.print("Nose-Cone Parachute Deploy at "); dataFile.println(altitude);
+      dataFile.print("Nose-Cone Parachute Deploy at "); dataFile.println(altitude); dataFile.print("at "); dataFile.println(millis);
     }
     if (altitude >= 389 && altitude <= 399) {
       myservo.write(unlock);
-      dataFile.print("Drone Launch at "); dataFile.write(altitude);
+      dataFile.print("Drone Launch at "); dataFile.write(altitude); dataFile.print("at "); dataFile.println(millis);
     }
 
   }
@@ -125,7 +125,7 @@ if (deltAltPast1 < 0){
 */  
   prevAlt = altitude;
   if(altitude - prevAlt < 0){
-	dataFile.print("Apogee Reached at "); dataFile.write(altitude);
+	dataFile.print("Apogee Reached at "); dataFile.print(altitude); dataFile.print("at "); dataFile.println(millis);
   	return true;
   }
 	
