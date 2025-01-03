@@ -18,10 +18,12 @@ const int Pyro = 15;
 const int Screw = 26;
 int num = -5;
 float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0;
+float altitude = 0.0;
+unsigned long currentTime = 0; 
 
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
 Adafruit_BMP3XX bmp;
-
+File dataFile;
 void setup() {
   Serial.begin(115200);
 
@@ -68,6 +70,7 @@ void setup() {
 }
 
 void loop() {
+  currentTime = millis();
   float startingPressure;
   if (num<= 5){
     startingPressure = bmp.pressure / 100.0;
@@ -90,7 +93,7 @@ void loop() {
     float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
 
     // Calculate altitude manually using barometric formula
-    float altitude = bmp.readAltitude(startingPressure);
+    altitude = bmp.readAltitude(startingPressure);
 
     Serial.print("Temperature: "); Serial.println(temperature);
     Serial.print("Pressure: "); Serial.println(pressure);
@@ -102,11 +105,11 @@ void loop() {
       digitalWrite(Pyro, HIGH);
       delay(2000);
       digitalWrite(Pyro, LOW);
-      dataFile.print("Nose-Cone Parachute Deploy at "); dataFile.println(altitude); dataFile.print("at "); dataFile.println(millis);
+      dataFile.print("Nose-Cone Parachute Deploy at "); dataFile.println(altitude); dataFile.print("at "); dataFile.println(currentTime);
     }
     if (altitude >= 389 && altitude <= 399) {
       myservo.write(unlock);
-      dataFile.print("Drone Launch at "); dataFile.write(altitude); dataFile.print("at "); dataFile.println(millis);
+      dataFile.print("Drone Launch at "); dataFile.write(altitude); dataFile.print("at "); dataFile.println(currentTime);
     }
 
   }
@@ -125,12 +128,11 @@ if (deltAltPast1 < 0){
 */  
   prevAlt = altitude;
   if(altitude - prevAlt < 0){
-	dataFile.print("Apogee Reached at "); dataFile.print(altitude); dataFile.print("at "); dataFile.println(millis);
+	dataFile.print("Apogee Reached at "); dataFile.print(altitude); dataFile.print("at "); dataFile.println(currentTime);
   	return true;
   }
 	
-  const unsigned long interval = 1000;  
-  unsigned long currentTime = millis();
+  const unsigned long interval = 1000;
   float deltaT = (currentTime - prevTime);  
  
 if(deltaT>= interval){
@@ -142,4 +144,3 @@ if(deltaT>= interval){
 }
 
 }
-
