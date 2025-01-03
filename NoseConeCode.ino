@@ -125,6 +125,7 @@ if (deltAltPast1 < 0){
 */  
   prevAlt = altitude;
   if(altitude - prevAlt < 0){
+	dataFile.print("Apogee Reached at "); dataFile.write(altitude);
   	return true;
   }
 	
