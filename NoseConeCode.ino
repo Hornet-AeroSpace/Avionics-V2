@@ -17,6 +17,7 @@ const int inputPin3 = 14;
 const int Pyro = 15;
 const int Screw = 26;
 int num = -5;
+float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0;
 
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
 Adafruit_BMP3XX bmp;
@@ -77,9 +78,7 @@ void loop() {
     myservo.write(lock);
   }
 
-  if ((digitalRead(inputPin) == LOW && digitalRead(inputPin2) == LOW) || 
-      (digitalRead(inputPin) == LOW && digitalRead(inputPin3) == LOW) || 
-      (digitalRead(inputPin2) == LOW && digitalRead(inputPin3) == LOW)) {
+  if (apogeeReached()) {
       
     // Perform sensor reading
     if (!bmp.performReading()) {
@@ -112,3 +111,34 @@ void loop() {
 
   }
 }
+bool apogeeReached() {
+// logic: if altitude greater than current, with a margin that is GREATER than a defined constant;  return TRUE. 
+
+/*$$  Needed variable: `const int altPast1;` deltAltPast1 will be the delta of the altitude over a single second. 
+
+another variable will be needed to track delay. the delay(n); function cannot be used at all. 
+
+
+if (deltAltPast1 < 0){ 
+  return true; 
+}
+*/  
+  prevAlt = altitude;
+  if(altitude - prevAlt < 0){
+  	return true;
+  }
+	
+  const unsigned long interval = 1000;  
+  unsigned long currentTime = millis();
+  float deltaT = (currentTime - prevTime);  
+ 
+if(deltaT>= interval){
+  prevTime = currentTime;
+  deltAlt = 0; 
+
+  }else{ 
+  deltAlt += altitude - prevAlt; 
+}
+
+}
+
