@@ -5,7 +5,7 @@
 #include <SPI.h> 
 #include <SD.h> 
 
-#define CS_PIN 5 
+#define CS_PIN 2 
 
 Servo myservo;
 int lock = 90;    // Lock position
