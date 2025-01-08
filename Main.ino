@@ -212,6 +212,10 @@ float returnVelocity(float ax, float ay, float az ){
   // 1. initalize gravity values for 3 axis
 
   float gx = 0, gy = 0, gz = 9.8; 
+  /*
+  $$ Double check orientationg of chip to ensure that the z axis has the g force on it. 
+  usually teh z axis is going out of the chip.  
+  */
   rotationMatrix(gx,gy,gz); //2. transform values to adjust the components of g
 
    ax -= gx; 
