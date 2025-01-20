@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import pi, exp, sign
 
 
-def _cross_sect_area_calc(diameter: float) -> float:
+def cross_sect_area_calc(diameter: float) -> float:
     return pi * (diameter / 2) ** 2
 
 def mass(mass_inital):
@@ -22,9 +22,9 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-def new_velocoity(velocity: float, time_step: float, drag_coefficient: float, cross_sect_area: float, altitude: float)-> float:
+def new_velocity(velocity: float, time_step: float, drag_coefficient: float, diameter: float, altitude: float)-> float:
     GRAVITY = 9.81 
-    new_velocity = velocity - (GRAVITY * time_step) - F_aero_drag(drag_coefficient, cross_sect_area, altitude, velocity)
+    new_velocity = velocity - (GRAVITY * time_step) - F_aero_drag(drag_coefficient, cross_sect_area_calc(diameter), altitude, velocity)
     return
 
 
@@ -43,7 +43,7 @@ cross_sect_area = _cross_sect_area_calc(0.155) # m^2
 mass_intital = 30000/1000 # kg
 
 
-alpha = F_aero_drag(drag_coefficient, cross_sect_area,)
+#alpha = F_aero_drag(drag_coefficient, cross_sect_area,)
 
 F = np.array([
     [1, 1],
