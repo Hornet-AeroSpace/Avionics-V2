@@ -4,13 +4,11 @@ from numpy import pi, exp, sign
 
 
 def _cross_sect_area_calc(diameter: float) -> float:
-   
     return pi * (diameter / 2) ** 2
 
-def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float) -> float:
-    density = air_density(altitude)
-    f_aero_drag = drag_coefficient* 0.5 * density * cross_sect_area
-    return f_aero_drag
+def mass(mass_inital):
+    # place holder for change in mass
+    return mass_inital
 
 def air_density(altitude: float) -> float:
     beta = 0.1354/1000.0 # Density Constant - confrim Constant
@@ -18,9 +16,14 @@ def air_density(altitude: float) -> float:
     density = density_sealevel * exp(-beta*altitude)
     return density
 
-def mass(mass_inital):
-    # place holder for change in mass
-    return mass_inital
+def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float, velocity: float ) -> float:
+    density = air_density(altitude)
+    f_aero_drag = drag_coefficient* 0.5 * density * cross_sect_area * velocity**2 * sign(velocity)
+    return f_aero_drag
+
+
+
+
 
 # Main differential equation 
 def derivative(t: float, state: np.array, rocket: RocketConfig, motor: Motor) -> np.ndarray:
@@ -54,6 +57,17 @@ def derivative(t: float, state: np.array, rocket: RocketConfig, motor: Motor) ->
     state_dot = np.array([velocity, acceleration, mass_dot])
     
     return state_dot
+
+
+def new_velcoity():
+    
+    return
+
+
+
+
+
+
 
 
 gravity = 9.81 # m/s**2
