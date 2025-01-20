@@ -28,41 +28,6 @@ def new_velocoity(velocity: float, time_step: float, drag_coefficient: float, cr
     return
 
 
-# Main differential equation 
-def derivative(t: float, state: np.array, rocket: RocketConfig, motor: Motor) -> np.ndarray:
-    """State space equation to be integrated numericaly. 
-
-    Args:
-        t (float): Time of current step in integratoin - seconds
-        state (np.array): State Vector [altitude - m, velocity - m/s, mass -kg]
-        rocket (RocketConfig): RocketConfig class containing perameters/methods of rocket
-        motor (Motor): Motor class conatining peramters/methods of the motor
-
-    Returns:
-        np.ndarray: State array dervivative to be integrated [altitude_dot - m/s, velcoity_dot - m/s**2, mass_dot - kg/s]
-    """    
-    GRAVITY = 9.81 # m/s^2 change in gravity considered negligible
-    aero = Aero(rocket)
-
-    # State vector
-    altitude = state[0]
-    velocity = state[1]
-    mass = state[2]
-    
-    # Forces
-    f_gravity = GRAVITY * mass
-    f_aero = aero.F_aero_drag(velocity, altitude)
-    f_thrust, mass_dot = motor.motor_output(t)
-    
-    f_net = f_thrust - f_aero - f_gravity
-    acceleration = f_net/mass
-    
-    state_dot = np.array([velocity, acceleration, mass_dot])
-    
-    return state_dot
-
-
-
 
 
 
