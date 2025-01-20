@@ -22,9 +22,9 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-def new_velocity(velocity: float, time_step: float, altitude: float)-> float:
+def sytem_prediction(velocity: float, time_step: float, altitude: float)-> float:
     '''
-    new_velocity is the prediction step of the velocity 
+    new_velocity is the prediction step of the Kalman filter 
 
     using constants for testing, switch to class where is this is defined once in production
     '''
@@ -37,11 +37,6 @@ def new_velocity(velocity: float, time_step: float, altitude: float)-> float:
     new_velocity = velocity - (GRAVITY * time_step) - ((force_aero / MASS) * time_step)
     return new_velocity
  
-
-
-
-
-
 
 
 
