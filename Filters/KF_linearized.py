@@ -22,7 +22,10 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-
+def new_velocoity(velocity: float, time_step: float, drag_coefficient: float, cross_sect_area: float, altitude: float)-> float:
+    GRAVITY = 9.81 
+    new_velocity = velocity - (GRAVITY * time_step) - F_aero_drag(drag_coefficient, cross_sect_area, altitude, velocity)
+    return
 
 
 # Main differential equation 
@@ -59,9 +62,7 @@ def derivative(t: float, state: np.array, rocket: RocketConfig, motor: Motor) ->
     return state_dot
 
 
-def new_velcoity():
-    
-    return
+
 
 
 
