@@ -22,11 +22,21 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-def new_velocity(velocity: float, time_step: float, drag_coefficient: float, diameter: float, altitude: float)-> float:
-    GRAVITY = 9.81 
-    new_velocity = velocity - (GRAVITY * time_step) - F_aero_drag(drag_coefficient, cross_sect_area_calc(diameter), altitude, velocity)
-    return
+def new_velocity(velocity: float, time_step: float, altitude: float)-> float:
+    '''
+    new_velocity is the prediction step of the velocity 
 
+    using constants for testing, switch to class where is this is defined once in production
+    '''
+    GRAVITY = 9.81 
+    DRAG_COEFFICIENT = 0.4
+    CROSS_SECT_AREA = cross_sect_area_calc (0.155)
+    MASS = 30 # Kg
+
+    force_aero = F_aero_drag(DRAG_COEFFICIENT, CROSS_SECT_AREA, altitude, velocity)
+    new_velocity = velocity - (GRAVITY * time_step) - ((force_aero / MASS) * time_step)
+    return new_velocity
+ 
 
 
 
