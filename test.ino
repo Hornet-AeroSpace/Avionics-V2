@@ -18,6 +18,7 @@ const int Screw = 26;
 int num = -5;
 float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0;
 float altitude = 0.0;
+float  groundspeed = 0; //meters per second  updates km/h on hud
 unsigned long currentTime = 0; 
 
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
@@ -56,6 +57,9 @@ void loop() {
     Serial.print("Starting Pressure" + num);Serial.println(startingPressure);
     num = num + 1;
   }
+  if(apogeeReached){
+      groundspeed = altitude;
+  }
   float temperature = bmp.temperature;
     float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
   altitude = bmp.readAltitude(startingPressure);
@@ -64,7 +68,6 @@ void loop() {
 
 float heading = (200 * 100);      // Heading in degrees (0-360) this updates heading 
 uint16_t throttle = 0;    // Throttle percentage (0-100) on hud
-float  groundspeed = 20; //meters per second  updates km/h on hud
 float climb_rate = 20;
 
   
