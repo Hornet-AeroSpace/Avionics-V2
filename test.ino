@@ -184,21 +184,38 @@ if (deltAltPast1 < 0){
   return true; 
 }
 */  
-  prevAlt = altitude;
-  if(altitude - prevAlt < 0){
-	
-  	return true;
-  }
-	
+  float deltaT = currentTime - prevTime;
+  float currentAlt = altitude;
+  bool potentialApogee = false;
+  float holdAlt = 0.0;
   const unsigned long interval = 1000;
-  float deltaT = (currentTime - prevTime);  
- 
-if(deltaT>= interval){
-  prevTime = currentTime;
-  deltAlt = 0; 
+  // Only execute logic if the interval has passed
+  if (deltaT >= interval) {
+    // Calculate the change in altitude
+    deltAlt = currentAlt - prevAlt;
 
-  }else{ 
-  deltAlt += altitude - prevAlt; 
-}
+    // Update prevTime for the next interval
+    prevTime = currentTime;
 
+    // Case 1: Altitude is decreasing (potential apogee detected)
+    if (deltAlt < 0 && !potentialApogee) {
+      potentialApogee = true;  // Mark as potential apogee
+      holdAlt = currentAlt;   // Save the altitude for comparison
+    }
+
+    // Case 2: Confirm apogee (altitude drops by 20 feet from holdAlt)
+    if (potentialApogee && (holdAlt - currentAlt >= 20)) {
+      return true;  // Confirmed apogee
+    }
+
+    // Case 3: Reset potential apogee if altitude starts increasing again
+    if (potentialApogee && deltAlt > 0) {
+      potentialApogee = false;  // Reset the flag
+    }
+
+    // Update prevAlt for the next interval
+    prevAlt = currentAlt;
+  }
+
+  return false;  // Apogee not reached yet
 }
