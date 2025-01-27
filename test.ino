@@ -17,8 +17,9 @@ const int Pyro = 15;
 const int Screw = 26;
 int num = -5;
 float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0;
+float holdAlt = 0.0;
 float altitude = 0.0;
-float  groundspeed = 0; //meters per second  updates km/h on hud
+float  groundspeed = 0; //meters per second  updates km/h on hud for MAVlink
 unsigned long currentTime = 0; 
 
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
@@ -58,7 +59,7 @@ void loop() {
     num = num + 1;
   }
   if(apogeeReached){
-      groundspeed = altitude;
+      groundspeed = holdAlt;
   }
   float temperature = bmp.temperature;
     float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
@@ -187,7 +188,6 @@ if (deltAltPast1 < 0){
   float deltaT = currentTime - prevTime;
   float currentAlt = altitude;
   bool potentialApogee = false;
-  float holdAlt = 0.0;
   const unsigned long interval = 1000;
   // Only execute logic if the interval has passed
   if (deltaT >= interval) {
@@ -204,7 +204,7 @@ if (deltAltPast1 < 0){
     }
 
     // Case 2: Confirm apogee (altitude drops by 20 feet from holdAlt)
-    if (potentialApogee && (holdAlt - currentAlt >= 20)) {
+    if (potentialApogee && (holdAlt - currentAlt >= 6.096)) {
       return true;  // Confirmed apogee
     }
 
