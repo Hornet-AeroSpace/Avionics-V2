@@ -18,18 +18,22 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-def system_prediction(velocity: float, time_step: float, altitude: float)-> float:
-    '''
-    new_velocity is the prediction step of the Kalman filter 
+def state_model(velocity: float, altitude: float)-> float:
+    """State model of forces/mass, returning the acceleration of the rocket
 
-    using constants for testing, switch to class where is this is defined once in production
-    '''
+    Args:
+        velocity (float): velocity (meters/sec) for aerodynamic drag calc
+        altitude (float): altitude (meters) for air density
+
+    Returns:
+        float: acceeration of rocket
+    """    
     GRAVITY = 9.81 
     DRAG_COEFFICIENT = 0.4
     CROSS_SECT_AREA = cross_sect_area_calc (0.155)
     MASS = 30 # Kg
 
     force_aero = F_aero_drag(DRAG_COEFFICIENT, CROSS_SECT_AREA, altitude, velocity)
-    new_velocity = velocity - (GRAVITY * time_step) - ((force_aero / MASS) * time_step)
-    return new_velocity
+    acceleration =  - (GRAVITY + (force_aero / MASS))
+    return acceleration
  
