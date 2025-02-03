@@ -18,7 +18,7 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-def sytem_prediction(velocity: float, time_step: float, altitude: float)-> float:
+def system_prediction(velocity: float, time_step: float, altitude: float)-> float:
     '''
     new_velocity is the prediction step of the Kalman filter 
 
