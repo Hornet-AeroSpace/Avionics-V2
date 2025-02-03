@@ -16,9 +16,21 @@ class imu:
     
     def standard_deviation_calc(self) -> float:
         """Calculates the standard deviatoin of the sensor by the information provided in initiation
-
+c
         Returns:
             float: Standard deviation of the noise
         """        
         standard_deviation = self.noise_density * math.sqrt(self.sample_rate) * self.GRAVITY 
         return standard_deviation
+    
+    def get_sensor_reading(self, sensor_reading: float) -> float:
+        """ Placehlder function for function to read data from IMU accelerometer and return sensor data
+
+        Args:
+            sensor_reading (float): Sensor Reading form accelerometer
+
+        Returns:
+            float: Accelerationn
+        """        
+        self.acceleration = sensor_reading
+        return self.acceleration
