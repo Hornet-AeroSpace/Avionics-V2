@@ -18,12 +18,13 @@ def F_aero_drag(drag_coefficient: float, cross_sect_area: float, altitude: float
     return f_aero_drag
 
 
-def state_model(velocity: float, altitude: float)-> float:
+def state_model(altitude: float, velocity: float)-> float:
     """State model of forces/mass, returning the acceleration of the rocket
 
     Args:
-        velocity (float): velocity (meters/sec) for aerodynamic drag calc
         altitude (float): altitude (meters) for air density
+        velocity (float): velocity (meters/sec) for aerodynamic drag calc
+        
 
     Returns:
         float: acceeration of rocket

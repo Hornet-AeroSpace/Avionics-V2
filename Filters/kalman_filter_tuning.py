@@ -1,4 +1,9 @@
 
+gravity = 9.81 # m/s**2
+air_density_0 = 1.225 # kg/m^3 at sea level
+drag_coefficient = 0.4
+cross_sect_area = cross_sect_area_calc(0.155) # m^2
+mass_intital = 30000/1000 # kg
 
 
 # Predict next value
