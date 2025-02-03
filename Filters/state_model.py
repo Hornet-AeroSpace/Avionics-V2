@@ -33,28 +33,3 @@ def sytem_prediction(velocity: float, time_step: float, altitude: float)-> float
     new_velocity = velocity - (GRAVITY * time_step) - ((force_aero / MASS) * time_step)
     return new_velocity
  
-
-
-
-
-gravity = 9.81 # m/s**2
-air_density_0 = 1.225 # kg/m^3 at sea level
-drag_coefficient = 0.4
-cross_sect_area = cross_sect_area_calc(0.155) # m^2
-mass_intital = 30000/1000 # kg
-
-
-#alpha = F_aero_drag(drag_coefficient, cross_sect_area,)
-
-F = np.array([
-    [1, 1],
-    [0, (-gravity)]
-])
-
-G = np.array([
-    [0],
-    [-gravity]
-])
-
-print(F)
-print(G)
