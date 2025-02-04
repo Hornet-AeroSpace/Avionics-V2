@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy import pi, exp, sign
 
-from atm_propteries import atmospheric_density
+from atm_properties import atmospheric_density
 
 def cross_sect_area_calc(diameter: float) -> float:
     return pi * (diameter / 2) ** 2
