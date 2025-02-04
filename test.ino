@@ -1,42 +1,24 @@
 #include <MAVLink.h>
-#include <ESP32Servo.h>
-#include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP3XX.h>
+#include <Wire.h>
 #include <SPI.h> 
 
 
-Servo myservo;
-int lock = 90;    // Lock position
-int unlock = 0;   // Unlock position
-
-const int inputPin = 13;
-const int inputPin2 = 12;
-const int inputPin3 = 14;
-const int Pyro = 15;
-const int Screw = 26;
 int num = -5;
+float startingPressure;
 float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0;
+float altitude;
 float holdAlt = 0.0;
-float altitude = 0.0;
-float  groundspeed = 0; //meters per second  updates km/h on hud for MAVlink
+float  groundspeed = 40; //meters per second  updates km/h on hud for MAVlink
 unsigned long currentTime = 0; 
 
 #define BMP390_I2C_ADDRESS 0x77 // Default I2C address for BMP390
 Adafruit_BMP3XX bmp;
 void setup() {
-  Serial.begin(115200);
-
-  myservo.attach(5);
-  
-  pinMode(inputPin, INPUT);
-  pinMode(inputPin2, INPUT);
-  pinMode(inputPin3, INPUT);
-  pinMode(Pyro, OUTPUT);
-  pinMode(Screw, INPUT);
-  digitalWrite(Pyro, LOW);  
-
-  // Initialize BMP390 sensor
+  // Initialize Serial (Serial0) on GPIO1 (TX) and GPIO3 (RX) for MAVLink communication
+  Serial.begin(115200);  // Adjust the baud rate as needed
+  delay(1000);
   if (!bmp.begin_I2C(BMP390_I2C_ADDRESS)) {
     Serial.println("Could not find a valid BMP390 sensor, check wiring!");
     while (1);
@@ -46,31 +28,36 @@ void setup() {
   bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
   bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
   bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-  bmp.setOutputDataRate(BMP3_ODR_50_HZ);
-
+  
 }
 
 void loop() {
-  currentTime = millis();
-  float startingPressure;
+  
   if (num<= 5){
     startingPressure = bmp.pressure / 100.0;
     Serial.print("Starting Pressure" + num);Serial.println(startingPressure);
     num = num + 1;
+    delay(500);
   }
   if(apogeeReached){
       groundspeed = holdAlt;
   }
   float temperature = bmp.temperature;
-    float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
+  delay(500);
+  float pressure = bmp.pressure / 100.0; // Convert pressure from Pa to hPa
+  delay(500);
   altitude = bmp.readAltitude(startingPressure);
+  Serial.println(altitude);
+  
+  // Create a MAVLink message container
   mavlink_message_t msg;
   uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 
-float heading = (200 * 100);      // Heading in degrees (0-360) this updates heading 
-uint16_t throttle = 0;    // Throttle percentage (0-100) on hud
-float climb_rate = 20;
-
+  float heading = (200 * 100);      // Heading in degrees (0-360)
+  float throttle = 30;    // Throttle percentage (0-100)
+  float airspeed = 20;
+  float Alt = altitude*1000;
+  float climb_rate = 20;
   
   mavlink_msg_vfr_hud_pack(
     0,                           
@@ -139,40 +126,7 @@ len = mavlink_msg_to_send_buffer(buf, &msg);
 Serial.write(buf, len);
 
   delay(1000);  // Send once per second
-  
-  if (digitalRead(Screw) == LOW) {
-    myservo.write(lock);
-  }
-     
-    // Perform sensor reading
-    if (!bmp.performReading()) {
-      Serial.println("Failed to perform reading from BMP390 sensor!");
-      return;
-    }
-
-    
-
-    // Calculate altitude manually using barometric formula
-    
-
-    Serial.print("Temperature: "); Serial.println(temperature);
-    Serial.print("Pressure: "); Serial.println(pressure);
-    Serial.print("Altitude: "); Serial.println(altitude);
-    Serial.print("Starting Pressure: "); Serial.println(startingPressure);
-
-    // Altitude-based actions
-    if (altitude <= 1000 && altitude >= 995) { // Adjust range as needed for small altitude variations
-      digitalWrite(Pyro, HIGH);
-      delay(2000);
-      digitalWrite(Pyro, LOW);
-      
-    }
-    if (altitude >= 389 && altitude <= 399) {
-      myservo.write(unlock);
-      
-    }
-
-  }
+}
 bool apogeeReached() {
 // logic: if altitude greater than current, with a margin that is GREATER than a defined constant;  return TRUE. 
 
