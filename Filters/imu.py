@@ -16,7 +16,7 @@ class imu:
     
     def standard_deviation_calc(self) -> float:
         """Calculates the standard deviatoin of the sensor by the information provided in initiation
-c
+
         Returns:
             float: Standard deviation of the noise
         """        
