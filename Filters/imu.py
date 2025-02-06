@@ -12,9 +12,9 @@ class imu:
         """
         self.noise_density = noise_density # be sure to check units when entering 
         self.sample_rate = sample_rate
-        self.standard_deviations = self.standard_deviation_calc()
+        self.standard_deviations = self._standard_deviation_calc()
     
-    def standard_deviation_calc(self) -> float:
+    def _standard_deviation_calc(self) -> float:
         """Calculates the standard deviatoin of the sensor by the information provided in initiation
 
         Returns:

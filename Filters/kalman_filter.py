@@ -14,7 +14,7 @@ def kalman_filter(altitude: float,
         altitude (float): (meters) hight of the rocket, used for atmospheric drag
         velocity_last_estimate (float): the last corrected data point provided by the filter
         variance_last (float): last varriace value of filter (how much noise and error is expected)
-        imu (imu): the senser data input from the imu
+        imu (imu): the senser class
         time_step (float): the time interval inbetween sampeles
 
     Returns:
@@ -22,11 +22,14 @@ def kalman_filter(altitude: float,
     """
     # State Prediction
     velocity_prediction = velocity_last_estimate + (state_model(altitude, velocity_last_estimate) * time_step)
-    varriance = variance_last + imu.noise_density**2
+    varriance = variance_last + imu.noise_density**2 
     
     # Update
     K = varriance / (varriance * imu.noise_density)
-    velocity_estimate = velocity_prediction + (K * (imu.get_sensor_reading - velocity_prediction))
+    velocity_estimate = velocity_prediction + (K * (imu.acceleration - velocity_prediction))
     
     varriance_new = (1 - K)* varriance
+    print(f"varriance {varriance}")
+    print(f"k = {K}")
+    print(f"new verriance {varriance_new}")
     return velocity_estimate, varriance_new
