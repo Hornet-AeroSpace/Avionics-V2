@@ -30,7 +30,7 @@ class imu:
             sensor_reading (float): Sensor Reading form accelerometer
 
         Returns:
-            float: Accelerationn
+            float: Acceleration
         """        
         self.acceleration = sensor_reading
         return self.acceleration
