@@ -6,20 +6,25 @@ from Filters.state_model import state_model
 from Filters.kalman_filter import kalman_filter
 from Filters.imu import imu
 
+# Time set up for Simulation
 time_start = 0
 time_end = 10
+sample_rate = 250 # sample rate in Hz
+time_step = 1 / sample_rate
+samples = int((time_end - time_start) / time_step)
 
 # preallocating list sizes
-time = np.linspace(time_start, time_end, 100)
+#time = np.linspace(time_start, time_end, 100)
+time = np.arange(time_start, time_end, time_step)
 
-altitude = np.zeros(100)
-acceleration = np.zeros(100)
-velocity = np.zeros(100)
+altitude = np.zeros(samples)
+acceleration = np.zeros(samples)
+velocity = np.zeros(samples)
 # Simulated data varriables
-noise = np.random.uniform(0.85, 1.15, 100)
-acceleration_sensed = np.zeros(100)
-velocity_sensed = np.zeros(100)
-altitude_sensed = np.zeros(100)
+noise = np.random.uniform(0.85, 1.15, samples)
+acceleration_sensed = np.zeros(samples)
+velocity_sensed = np.zeros(samples)
+altitude_sensed = np.zeros(samples)
 
 # Initial conditions
 altitude [0] = 0
@@ -29,12 +34,12 @@ acceleration[0] = -9.81
 
 
 # Kalman Filter setup
-altitude_corrected = np.zeros(100)
-velocity_corrected = np.zeros(100)
-varriance = np.zeros(100)
-varriance_new = np.zeros(100)
-velocity_corrected[0] = 40
-Bno055 = imu(150E-6, 1/(time[1] - time[0])) # sample rate in Hz
+altitude_corrected = np.zeros(samples)
+velocity_corrected = np.zeros(samples)
+varriance = np.zeros(samples)
+varriance_new = np.zeros(samples)
+velocity_corrected[0] = 40 # simulated first sensor reading.
+Bno055 = imu(150E-6, sample_rate) # sample rate in Hz
 
 
 for i in range(1, 100):
