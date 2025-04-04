@@ -30,26 +30,31 @@ Index:
 #include "Adafruit_INA260.h"
 
 
+//  MANUALLY VERIFY OR SET VALUE(S) BEFORE RUNNING 
+
+int STAGENUMBER = 0; 
+
+const int MAIN_DEPLOY_ALT = 1400; 
+const float BMP_INIT_READ = 1013.25;
+
+const int DROUGEPIN = 12; //  Pin to set off charges, confirm this is correct pin
+const int MAINPIN = 11;   // 
 
 
+unsigned long startTime = 0; // Initalized at Stage 1
 
-//---- Global Variables <
- 
+
 float altitude, a_magnitude, velocity = 0;  // Acceleration magnitude and velocity      
 float prevTime = 0, prevAlt = 0.0, deltAlt = 0.0, power;
 
-const int LOCKOUTVELOCITY = 257;  // Units: m/s,  "$$" derived by (.75 * 375 m/s) 375 m/s is the speed of sound at sea level
-const int CHARGESPIN = 37; // $$ Pin to set off charges, confirm this is correct pin after swithcing to protenta
-
 
 Adafruit_BMP3XX bmp;                    // barometric pressure sensor
-Adafruit_ICM20948 icm;                  // Inertial measurment unit sensor 
 Adafruit_ADXL375 accel(0x53, &Wire);    // Accelerometer
+
 /*
 $$ uncomment & remove once the hex address for the INA is found 
 Adafruit_INA260 ina260 = Adafruit_INA260(IICaddr, &Wire); // voltage & current sensor 
 */ 
-//>
 
 void setup() {
 
@@ -94,34 +99,49 @@ Wire.begin();
 
 
 void loop() {
+// Add a StringBuilder { Time, altitude, acc(x), acc(y), acc(z), Stage#, Battery Life }
 
   unsigned long elapsedTime = millis();
-  if(elapsedTime % 250 == 0 ){ // conditional that excecutes every 250 miliseconds, p
+
+  if(elapsedTime> 250){ 
+// Values are initalized in setup, and updated here 
 // power = ina260.readPower(); 
 // Volt = readBusVoltage(); 
-
   }
 
   sensors_event_t event;
-  accel.getEvent(&event);  // Get acceleration data
-  // Calculate acceleration magnitude (in m/s²)
+  accel.getEvent(&event);  // return acceleration magnitude (in m/s²)
 
-  // Grab acceleration values & calculate speed via kinematics in returnVelocity(). Velocity is calculated as a scalar within the function
-
-  float ax = event.acceleration.x;  // X acceleration
-  float ay = event.acceleration.y;  // Y acceleration
-  float az = event.acceleration.z;  // Z acceleration
+  float ax = event.acceleration.x;  
+  float ay = event.acceleration.y;   
+  float az = event.acceleration.z;   
 
   //Calculating altitude using Pressure and Temperature
- altitude = bmp.readAltitude(1013.25);
+ altitude = bmp.readAltitude(BMP_INIT_READ);
   
-if(!(returnVelocity(ax,ay,az) > LOCKOUTVELOCITY)){ 
-//$$  preform functions if you are under .75 * (speed of sound)
 
-if (apogeeReached()){ 
 
-  deployCharges(CHARGESPIN); 
-}
+  switch (STAGENUMBER) {
+    case 1:
+    stageOne(az,ay,ax);   // Checking For accelration, ( needs 3 components bc the sensor can have multiple orientations)
+      break;
+    case 2:
+    stageTwo();           // Wating 5.5s
+      break;
+    case 3:
+    stageThree();        // Checking for Apogee 
+      break;
+    case 4: 
+    stageFour();         // Checking for 1400ft
+    default:
+      break;
+  }
+
+
+
+
+
+
 
 }
 // intentionally left out an else block. the following functions are supposed to occur regardless of current state.
@@ -131,262 +151,102 @@ if (apogeeReached()){
 
 
 
-}
+
 
 void trasmitMavlink(){  //$$ function definition incomplete
 
 /*
 
-  mavlink_msg_vfr_hud_pack(
-    0,                           
-    0,                         
-    &msg,
-    0,                    
-    speed,                 // [m/s] Groundspeed updtaes hud updates hyd
-    pitch,                     // [degrees] Heading (yaw angle) // updates hud
-    throttle,                   
-    0,             
-    climb_rate                        // [m/s] Climb rate updates hud
-  );
- uint16_t len = mavlink_msg_to_send_buffer(buf, &msg);
- // Serial.write(buf, len);
-
-
-
-int32_t relative_altitude = static_cast<int32_t>(2000 * 1000); // Relative altitude in millimeters //this updates height on hud
-
-
-mavlink_msg_global_position_int_pack(
-    0, //sys id not requied 
-    0, //componet id not required
-    &msg,
-    0,
-    0,
-    0,
-    0,
-    relative_altitude,
-    0,
-    0,
-    0,
-    heading
-);
-len = mavlink_msg_to_send_buffer(buf, &msg);
-
-//Serial.write(buf, len);
-uint16_t voltage_battery = 8000;  // Example: 11V (in millivolts) //updates voltage 
-int16_t current_battery = 200;     // Example: 1A (in centiamperes) //updates current 
-
-
-mavlink_msg_sys_status_pack(
-    0,
-    0,
-    &msg,
-    0,  
-    0,  
-    0,  
-    0,
-    voltage_battery, // updates hud
-    current_battery, // updates hud
-    0,  
-    0, 
-    0, 
-    0,
-    0, 
-    0, 
-    0,
-    0,
-    0,
-    0
-); 
-  
-
-len = mavlink_msg_to_send_buffer(buf, &msg);
-//Serial.write(buf, len);
-
 */
 
 }
 
-float returnVelocity(float ax, float ay, float az ){ 
-
-  // 1. initalize gravity values for 3 axis
-
-  float gx = 0, gy = 0, gz = 9.8; 
-  /*
-  $$ Double check orientationg of chip to ensure that the z axis has the g force on it. 
-  usually teh z axis is going out of the chip.  
-  */
-  rotationMatrix(gx,gy,gz); //2. transform values to adjust the components of g
-
-   ax -= gx; 
-   ay -= gy; 
-   az -= gz; 
-   Serial.print("GX: "); Serial.println(gx);
-   Serial.print("GY: "); Serial.println(gy);
-   Serial.print("GZ: "); Serial.println(gz);
-  a_magnitude = sqrt(ax * ax + ay * ay + az * az);  // Total magnitude
-  
-
-  // Time calculation (in seconds)
-  unsigned long currentTime = millis();
-  float deltaT = (currentTime - prevTime) / 1000.0;  // Convert ms to seconds
-  prevTime = currentTime;
-
-  // Integrate to calculate velocity
-  velocity += a_magnitude * deltaT;
-
-  return velocity;
-  
-
-}
 
 //----------- Function Definitons ----------------------------
 
 
-bool apogeeReached() {
-// logic: if altitude greater than current, with a margin that is GREATER than a defined constant;  return TRUE. 
+bool apogeeReached(float altitude) {
+    const unsigned long interval = 500; // 1/2 second
+    unsigned long prevTime = 0;
+    float prevAlt = 0;
+    float deltAlt = 0;
 
-/*$$  Needed variable: `const int altPast1;` deltAltPast1 will be the delta of the altitude over a single second. 
+    unsigned long currentTime = millis();
+    float deltaT = currentTime - prevTime;
 
-another variable will be needed to track delay. the delay(n); function cannot be used at all. 
+    // Accumulate delta altitude
+    deltAlt += altitude - prevAlt;
+    prevAlt = altitude;
 
+    if (deltaT >= interval) {
+      prevTime = currentTime;
 
-if (deltAltPast1 < 0){ 
-  return true; 
-}
-*/  
-  prevAlt = altitude;
-  if(altitude - prevAlt < 0){
-  	return true;
-  }
-	
-  const unsigned long interval = 1000;  
-  unsigned long currentTime = millis();
-  float deltaT = (currentTime - prevTime);  
- 
-if(deltaT>= interval){
-  prevTime = currentTime;
-  deltAlt = 0; 
-
-  }else{ 
-  deltAlt += altitude - prevAlt; 
-}
-
-}
-
-
-// track whatever components you want. 
-void rotationMatrix(float &x, float &y, float &z){ 
-
-
-  sensors_event_t gyro;
-  icm.getEvent(NULL,&gyro,NULL,NULL);  
-
-
-
-  // return gyro values
-  float roll = gyro.gyro.z;  
-  float pitch = gyro.gyro.z;  
-  float yaw = gyro.gyro.z; 
-  
-
-  //$$ verify if gryo values from the sensor tracks  values in one of two ways 1. incremental rotation or 2. total rotation. 
-
-  // if 1( leave everything alone). if 2(in loop, sum the total changes of the gyro values)
-
-  // Initalize gyro values from the IMU here. 
-
-  float prevX = x, prevY = y, prevZ = z; 
-
-
-
-  float theta = toRadians(pitch); // Pitch
-  float phi = toRadians(roll);    // Roll
-  float psi = toRadians(yaw);     // Yaw
-
-
-  
-  // Rotation matrices      
-  float R_roll[3][3] = {
-    {1, 0, 0},
-    {0, cos(phi), -sin(phi)},
-    {0, sin(phi), cos(phi)}
-  };
-
-  float R_pitch[3][3] = {
-    {cos(theta), 0, sin(theta)},
-    {0, 1, 0},
-    {-sin(theta), 0, cos(theta)}
-  };
-
-  float R_yaw[3][3] = {
-    {cos(psi), -sin(psi), 0},
-    {sin(psi), cos(psi), 0},
-    {0, 0, 1}
-  };
-
-
-
-// computing R total,  A*B*C    <  
-
-  float R[3][3] = {0};
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      R[i][j] = 0;
-      for (int k = 0; k < 3; k++) {
-        R[i][j] += R_yaw[i][k] * R_pitch[k][j]; // =  A*B
+      if (deltAlt < 0) {
+        // Altitude decreased over 1/2 second -> apogee passed
+        deltAlt = 0;
+        return true;
       }
+
+      // Reset delta for next interval
+      deltAlt = 0;
     }
-  }
+
+  return false;
+}
 
 
-  // pt2  
-
-  float R_combined[3][3] = {0};
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      R_combined[i][j] = 0;
-      for (int k = 0; k < 3; k++) {
-        R_combined[i][j] += R[i][k] * R_roll[k][j]; //  = (A*B)* C
-      }
-    }
-  }
+void stageOne(float az, float ay, float ax){ 
+if (az > 1 || ay >1 || ax>1){ 
+  startTime = millis();
+  STAGENUMBER++;  
+} else
+{}
+  return; 
+}
 
 
-  x = R_combined[0][0] * prevX + R_combined[0][1] * prevY + R_combined[0][2] * prevZ;
-  y = R_combined[1][0] * prevX + R_combined[1][1] * prevY + R_combined[1][2] * prevZ;
-  z = R_combined[2][0] * prevX + R_combined[2][1] * prevY + R_combined[2][2] * prevZ;
 
-// >
-// $$ Source: https://math.libretexts.org/Bookshelves/Applied_Mathematics/Mathematics_for_Game_Developers_(Burzynski)/04%3A_Matrices/4.06%3A_Rotation_Matrices_in_3-Dimensions
+void stageTwo(){ 
+if ((millis()-startTime) > 5500){ 
+  STAGENUMBER++;  
+} 
 
 }
 
-void admin() {
+void stageThree(){
 
-// will be a function that return batter life or any other needed data via bluetooth. Not a priority atm. 
+  // STAGE 3 LOOPING CONDITION 
+if (apogeeReached()){ 
+  deployCharges(DROUGEPIN); 
+  STAGENUMBER++;  
+} 
 
 
 }
+
+void stageFour(){ 
+
+  if(altitude<MAIN_DEPLOY_ALT){ 
+  deployCharges(MAINPIN);
+  STAGENUMBER++;  
+  }
+
+}
+
+
+
+
 
 void deployCharges(int pin) {
 
   /* 
   Set the predefined pin to HIGH
-
   */ 
  digitalWrite(pin, HIGH); 
 
 }
 
-// HELPER FUNCTIONS 
 
-// Function to convert degrees to radians
-float toRadians(float degrees) {
-  return degrees * M_PI / 180.0;
-}
-
-//---------  MAINTANCE METHODS  --------------------
 
 /*
 * Methods to add: 
